@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import Image from 'next/image'
-import { MapPin, KeyRound, Home, Check, ChevronDown, ChevronUp, Plus, Minus, X } from 'lucide-react'
+import { MapPin, KeyRound, Home, Check, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Plus, Minus, X } from 'lucide-react'
 
 interface AmenityGroup {
   category: string
@@ -53,6 +53,9 @@ function AmenityGroupCard({ group, color }: { group: AmenityGroup; color: string
 }
 
 export default function CottageDetails() {
+  // Carousel ref
+  const carouselRef = useRef<HTMLDivElement>(null)
+
   // Date and guest state
   const [checkInDate, setCheckInDate] = useState('')
   const [checkOutDate, setCheckOutDate] = useState('')
@@ -63,6 +66,16 @@ export default function CottageDetails() {
     infants: 0,
     pets: 0,
   })
+
+  const scrollCarousel = (direction: 'left' | 'right') => {
+    if (carouselRef.current) {
+      const scrollAmount = 300
+      carouselRef.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth',
+      })
+    }
+  }
 
   const totalGuests = guests.adults + guests.children
   const maxGuests = 5
@@ -222,14 +235,37 @@ export default function CottageDetails() {
         <div>
           <h2 className="text-3xl font-bold text-[#223318] mb-12">What this place offers</h2>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {amenityGroups.map((group, idx) => (
-              <AmenityGroupCard 
-                key={idx} 
-                group={group} 
-                color={colors[idx % colors.length]}
-              />
-            ))}
+          <div className="relative">
+            {/* Navigation Buttons - Mobile Only */}
+            <button
+              onClick={() => scrollCarousel('left')}
+              className="absolute left-[-20px] top-1/2 -translate-y-1/2 z-10 bg-white rounded-full p-2 shadow-lg hover:bg-gray-100 transition-colors md:hidden"
+              aria-label="Previous amenities"
+            >
+              <ChevronLeft className="w-6 h-6 text-[#223318]" />
+            </button>
+            
+            <div
+              ref={carouselRef}
+              className="flex overflow-x-auto snap-x snap-mandatory md:grid md:grid-cols-2 gap-4 md:gap-8 scroll-smooth"
+            >
+              {amenityGroups.map((group, idx) => (
+                <div key={idx} className="flex-shrink-0 w-full md:w-auto md:flex-shrink snap-center">
+                  <AmenityGroupCard 
+                    group={group} 
+                    color={colors[idx % colors.length]}
+                  />
+                </div>
+              ))}
+            </div>
+            
+            <button
+              onClick={() => scrollCarousel('right')}
+              className="absolute right-[-20px] top-1/2 -translate-y-1/2 z-10 bg-white rounded-full p-2 shadow-lg hover:bg-gray-100 transition-colors md:hidden"
+              aria-label="Next amenities"
+            >
+              <ChevronRight className="w-6 h-6 text-[#223318]" />
+            </button>
           </div>
         </div>
       </div>

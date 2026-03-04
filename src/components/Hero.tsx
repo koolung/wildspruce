@@ -18,19 +18,19 @@ export default function Hero() {
       </video>
 
       {/* Dark Overlay */}
-      <div className="absolute inset-0 bg-black/50"></div>
+      <div className="absolute inset-0 bg-black/35 md:bg-black/50"></div>
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="max-w-2xl">
           {/* Text Content */}
           <div className="space-y-6">
-            <h1 className="text-5xl md:text-6xl font-bold leading-tight">
+            <h1 className="text-3xl md:text-6xl font-bold md:leading-tight">
               The Perfect Cabin Escape in Nova Scotia
             </h1>
-            <p className="text-xl text-gray-100 leading-relaxed">
+            <p className="text-lg md:text-xl text-gray-100 md:leading-relaxed">
               Discover stunning cabin rentals in the heart of nature. Book your dream getaway and create unforgettable memories in the wilderness.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 pt-4">
+            <div className="flex flex-col sm:flex-row gap-4 pt-4 text-center">
               <a href="#cabins" className="btn-primary bg-white text-[#223318] hover:bg-gray-100">
                 Browse Cabins
               </a>
