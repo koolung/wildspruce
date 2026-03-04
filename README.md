@@ -1,36 +1,120 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Wild Spruce Website
 
-## Getting Started
+A modern, professional website for Wild Spruce built with **Next.js**, **React**, **TypeScript**, and **Tailwind CSS**.
 
-First, run the development server:
+## 🌲 Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- **Responsive Design** - Mobile-first approach that works on all devices
+- **Modern UI** - Clean, professional design with accent color #223318
+- **Fast Performance** - Optimized with Next.js for lightning-fast load times
+- **SEO Optimized** - Built-in meta tags and structured data
+- **Accessible** - WCAG compliant with proper semantic HTML
+- **Component-Based** - Reusable React components for easy maintenance
+- **Contact Form** - Fully functional contact form
+- **Smooth Animations** - Subtle transitions and hover effects
+
+## 📁 Project Structure
+
+```
+wildspruce/
+├── src/
+│   ├── app/
+│   │   ├── layout.tsx          # Root layout
+│   │   ├── page.tsx            # Home page
+│   │   └── globals.css         # Global styles
+│   └── components/
+│       ├── Header.tsx          # Navigation header
+│       ├── Hero.tsx            # Hero section
+│       ├── Services.tsx        # Services showcase
+│       ├── Contact.tsx         # Contact form
+│       └── Footer.tsx          # Footer
+├── public/                     # Static assets
+├── package.json               # Dependencies
+├── tsconfig.json             # TypeScript config
+├── tailwind.config.ts        # Tailwind configuration
+├── postcss.config.js         # PostCSS configuration
+└── next.config.js            # Next.js configuration
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🚀 Getting Started
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Prerequisites
+- Node.js 16+ and npm/yarn installed
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Installation
 
-## Learn More
+1. Navigate to the project directory:
+```bash
+cd wildspruce
+```
 
-To learn more about Next.js, take a look at the following resources:
+2. Install dependencies:
+```bash
+npm install
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+3. Run the development server:
+```bash
+npm run dev
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+4. Open [http://localhost:3000](http://localhost:3000) in your browser to see the site!
 
-## Deploy on Vercel
+## 📦 Build & Deploy
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Build for production:
+```bash
+npm run build
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Start production server:
+```bash
+npm start
+```
+
+### Deploy to Vercel (Recommended):
+```bash
+npm install -g vercel
+vercel
+```
+
+## 🎨 Customization
+
+### Colors
+Edit the accent color in:
+- [tailwind.config.ts](tailwind.config.ts) - Change `#223318` to your desired color
+- [src/app/globals.css](src/app/globals.css) - Update Tailwind color utilities
+
+### Content
+- Update company info in [src/components/Footer.tsx](src/components/Footer.tsx)
+- Modify services in [src/components/Services.tsx](src/components/Services.tsx)
+- Change hero text in [src/components/Hero.tsx](src/components/Hero.tsx)
+
+### Metadata
+Edit site title and description in [src/app/layout.tsx](src/app/layout.tsx)
+
+## 📞 Contact Information
+Update contact details in [src/components/Contact.tsx](src/components/Contact.tsx):
+- Email
+- Phone
+- Address
+
+## 🛠 Tech Stack
+
+- **Framework**: Next.js 14
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS
+- **Icons**: Lucide React
+- **Package Manager**: npm
+
+## 📄 License
+
+MIT License - Feel free to use this template for your projects!
+
+## 🤝 Support
+
+For issues or questions, feel free to reach out through the contact form on the website.
+
+---
+
+**Made with 🌲 for Wild Spruce**
