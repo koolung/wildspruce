@@ -1,0 +1,175 @@
+You are a senior full-stack engineer specializing in Next.js (App Router), serverless architecture, and PostgreSQL.
+
+I am building a **cabin booking web application** with the following constraints and requirements. Your task is to design and implement a **production-ready backend system**.
+
+---
+
+# 🧩 SYSTEM CONTEXT
+
+* Frontend: Next.js (App Router) hosted on Vercel
+* Backend: Next.js Server Actions + Route Handlers (same Vercel project)
+* Database: Supabase (PostgreSQL)
+* No user authentication (guest booking only)
+* All dates must be stored in **UTC in the database**
+* Admin dashboard with login credentials stored in env.local with injection protection
+
+---
+
+# 🎯 CORE FEATURES
+
+1. Guest booking (no login required)
+2. Date range selection (start_date, end_date)
+3. Prevent overlapping bookings
+4. Email notification after booking submission
+5. Admin dashboard to:
+
+   * View bookings
+   * Update status (pending, confirmed, cancelled)
+   * Block dates manually
+
+---
+
+# 🗄️ DATABASE DESIGN REQUIREMENTS
+
+Design PostgreSQL tables in Supabase:
+
+### bookings table
+
+* id (uuid, primary key)
+* name
+* email
+* phone
+* start_date (UTC)
+* end_date (UTC)
+* guests (integer)
+* notes (text)
+* status (enum: pending, confirmed, cancelled)
+* created_at (timestamp UTC)
+
+### blocked_dates table
+
+* id
+* date (UTC)
+* reason
+
+Include:
+
+* Proper indexes for date queries
+* Constraints to help prevent overlaps where possible
+
+---
+
+# ⚙️ BACKEND IMPLEMENTATION
+
+Use:
+
+* Next.js Server Actions for mutations
+* Route Handlers for fetch endpoints if needed
+
+Implement:
+
+## 1. createBooking action
+
+* Validate input (use Zod)
+* Normalize dates to UTC
+* Check for overlapping bookings:
+  existing.start_date <= requested_end AND existing.end_date >= requested_start
+* Check against blocked_dates
+* Insert booking (default status: pending)
+* Return structured response (success/error)
+
+## 2. getAvailability function
+
+* Given a date range, return unavailable dates
+
+## 3. adminUpdateBooking action
+
+* Update booking status
+
+## 4. blockDate action
+
+* Insert into blocked_dates
+
+---
+
+# 🔐 SECURITY REQUIREMENTS
+
+* NEVER expose Supabase service role key to client
+* All DB operations must happen server-side
+* Prevent direct client writes
+* Add basic rate limiting strategy (describe implementation)
+* Sanitize and validate all inputs
+
+---
+
+# 📧 EMAIL INTEGRATION
+
+use native nodemailer. login credentials in the .env.local
+
+Implement:
+
+* Booking confirmation email to guest
+* Notification email to admin
+
+---
+
+# 🕒 DATE HANDLING RULES
+
+* Store all dates in UTC in database
+* Convert to local timezone only on frontend
+* Ensure no timezone drift or off-by-one errors
+* Clearly show how dates are parsed and stored
+
+---
+
+# 📁 PROJECT STRUCTURE
+
+Provide a clean, scalable structure:
+
+* /app/api/*
+* /actions/*
+* /lib/supabase.ts
+* /lib/validation.ts
+* /lib/email.ts
+
+---
+
+# 🧪 EDGE CASES TO HANDLE
+
+* Overlapping bookings
+* Same-day check-in/check-out logic
+* Invalid date ranges
+* Duplicate submissions
+* Race conditions (double booking)
+
+---
+
+# 🚀 OUTPUT FORMAT
+
+Provide:
+
+1. SQL schema (ready for Supabase)
+2. TypeScript backend code:
+
+   * Server Actions
+   * Supabase client setup
+   * Validation schemas
+3. Explanation of key decisions (brief but clear)
+4. Suggestions for future scalability:
+
+   * payments - stripe
+   * multi-cabin support
+   * calendar sync (Airbnb/iCal)
+
+---
+
+# ⚠️ IMPORTANT
+
+* Code must be production-ready, not pseudo-code
+* Use modern Next.js patterns (App Router)
+* Keep implementation clean and minimal (no overengineering)
+* Assume developer is experienced — avoid basic explanations
+
+---
+
+Build this as if it will be deployed immediately in a real business environment.

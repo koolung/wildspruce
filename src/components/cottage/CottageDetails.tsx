@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import Image from 'next/image'
-import { MapPin, KeyRound, Home, Check, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Plus, Minus, X } from 'lucide-react'
+import { MapPin, KeyRound, Home, Check, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Plus, Minus, X, Calendar as CalendarIcon } from 'lucide-react'
 
 interface AmenityGroup {
   category: string
@@ -59,6 +59,12 @@ export default function CottageDetails() {
   // Date and guest state
   const [checkInDate, setCheckInDate] = useState('')
   const [checkOutDate, setCheckOutDate] = useState('')
+  const [showCalendar, setShowCalendar] = useState(false)
+  const [currentCalendarDate, setCurrentCalendarDate] = useState(new Date(2026, 3, 1))
+  const [unavailableDates, setUnavailableDates] = useState<Set<string>>(new Set())
+  const [selectedStart, setSelectedStart] = useState<Date | null>(null)
+  const [selectedEnd, setSelectedEnd] = useState<Date | null>(null)
+  const [calendarLoading, setCalendarLoading] = useState(false)
   const [showGuestModal, setShowGuestModal] = useState(false)
   const [guests, setGuests] = useState({
     adults: 1,
@@ -66,6 +72,150 @@ export default function CottageDetails() {
     infants: 0,
     pets: 0,
   })
+  const [guestName, setGuestName] = useState('')
+  const [guestEmail, setGuestEmail] = useState('')
+  const [guestPhone, setGuestPhone] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // Fetch unavailable dates when calendar opens (only once)
+  useEffect(() => {
+    if (showCalendar && unavailableDates.size === 0) {
+      const fetchUnavailableDates = async () => {
+        try {
+          setCalendarLoading(true)
+          const startOfYear = new Date(2026, 0, 1)
+          const endOfYear = new Date(2026, 11, 31)
+
+          const resStart = startOfYear.toISOString().split('T')[0]
+          const resEnd = endOfYear.toISOString().split('T')[0]
+
+          const response = await fetch('/api/availability', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              start_date: resStart,
+              end_date: resEnd,
+            }),
+          })
+
+          if (!response.ok) throw new Error('Failed to fetch availability')
+
+          const data = await response.json()
+          const dates = new Set<string>()
+
+          if (data.unavailableDates && Array.isArray(data.unavailableDates)) {
+            data.unavailableDates.forEach((dateStr: string) => {
+              dates.add(dateStr)
+            })
+            console.log('Loaded unavailable dates:', Array.from(dates))
+          }
+
+          setUnavailableDates(dates)
+        } catch (err) {
+          console.error('Error fetching availability:', err)
+        } finally {
+          setCalendarLoading(false)
+        }
+      }
+
+      fetchUnavailableDates()
+    }
+  }, [showCalendar])
+
+  // Calendar helper functions
+  const dateToString = (date: Date) => {
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
+  }
+
+  const getDaysInMonth = (date: Date) => {
+    return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate()
+  }
+
+  const getFirstDayOfMonth = (date: Date) => {
+    return new Date(date.getFullYear(), date.getMonth(), 1).getDay()
+  }
+
+  const isDateUnavailable = (date: Date) => {
+    const dateStr = dateToString(date)
+    const isUnavailable = unavailableDates.has(dateStr)
+    // Uncomment for debugging:
+    // if (isUnavailable) console.log('Unavailable date found:', dateStr)
+    return isUnavailable
+  }
+
+  const isDateInRange = (date: Date) => {
+    if (!selectedStart || !selectedEnd) return false
+    const [start, end] = selectedStart <= selectedEnd ? [selectedStart, selectedEnd] : [selectedEnd, selectedStart]
+    return date >= start && date <= end
+  }
+
+  const isStartDate = (date: Date) => {
+    if (!selectedStart) return false
+    return dateToString(date) === dateToString(selectedStart)
+  }
+
+  const isEndDate = (date: Date) => {
+    if (!selectedEnd) return false
+    return dateToString(date) === dateToString(selectedEnd)
+  }
+
+  const handleCalendarDateClick = (day: number) => {
+    const clickedDate = new Date(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth(), day)
+
+    if (isDateUnavailable(clickedDate)) {
+      return
+    }
+
+    if (!selectedStart) {
+      setSelectedStart(clickedDate)
+      setSelectedEnd(null)
+    } else if (!selectedEnd) {
+      if (clickedDate < selectedStart) {
+        setSelectedStart(clickedDate)
+        setSelectedEnd(null)
+      } else {
+        // Check if there are any blocked dates between selectedStart and clickedDate
+        let hasBlockedDatesInRange = false
+        const checkDate = new Date(selectedStart)
+        while (checkDate < clickedDate) {
+          if (isDateUnavailable(checkDate)) {
+            hasBlockedDatesInRange = true
+            break
+          }
+          checkDate.setDate(checkDate.getDate() + 1)
+        }
+
+        if (hasBlockedDatesInRange) {
+          alert('There are blocked dates within your selected range. Please choose different dates.')
+          return
+        }
+
+        setSelectedEnd(clickedDate)
+      }
+    } else {
+      setSelectedStart(clickedDate)
+      setSelectedEnd(null)
+    }
+  }
+
+  const confirmDateSelection = () => {
+    if (selectedStart && selectedEnd) {
+      setCheckInDate(dateToString(selectedStart))
+      setCheckOutDate(dateToString(selectedEnd))
+      setShowCalendar(false)
+    }
+  }
+
+  const handlePrevMonth = () => {
+    setCurrentCalendarDate(new Date(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth() - 1))
+  }
+
+  const handleNextMonth = () => {
+    setCurrentCalendarDate(new Date(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth() + 1))
+  }
 
   const scrollCarousel = (direction: 'left' | 'right') => {
     if (carouselRef.current) {
@@ -79,6 +229,77 @@ export default function CottageDetails() {
 
   const totalGuests = guests.adults + guests.children
   const maxGuests = 5
+
+  // Calculate nights and pricing (using Halifax timezone)
+  const calculateNights = () => {
+    if (!checkInDate || !checkOutDate) return 0
+    // Parse dates as local Halifax time (not UTC)
+    const [startYear, startMonth, startDay] = checkInDate.split('-').map(Number)
+    const [endYear, endMonth, endDay] = checkOutDate.split('-').map(Number)
+    const start = new Date(startYear, startMonth - 1, startDay)
+    const end = new Date(endYear, endMonth - 1, endDay)
+    const nights = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))
+    return Math.max(0, nights)
+  }
+
+  const nights = calculateNights()
+  const nightly_rate = 249
+  const servicefee = 150
+  const totalPrice = nights > 0 ? nights * nightly_rate + servicefee : 0
+
+  const handleReserveClick = async () => {
+    if (!checkInDate || !checkOutDate) {
+      alert('Please select dates')
+      return
+    }
+    if (!guestName.trim()) {
+      alert('Please enter your name')
+      return
+    }
+    if (!guestEmail.trim()) {
+      alert('Please enter your email')
+      return
+    }
+    if (!guestPhone.trim()) {
+      alert('Please enter your phone number')
+      return
+    }
+
+    try {
+      setIsSubmitting(true)
+      const response = await fetch('/api/submit-booking', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: guestName,
+          email: guestEmail,
+          phone: guestPhone,
+          start_date: checkInDate,
+          end_date: checkOutDate,
+          guests: totalGuests,
+          notes: `Pets: ${guests.pets}, Infants: ${guests.infants}`,
+        }),
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        alert(`Booking failed: ${error.error || 'Unknown error'}`)
+        return
+      }
+
+      alert('Booking created successfully! Check your email for confirmation.')
+      setCheckInDate('')
+      setCheckOutDate('')
+      setGuestName('')
+      setGuestEmail('')
+      setGuestPhone('')
+    } catch (err) {
+      console.error('Error creating booking:', err)
+      alert('Failed to create booking. Please try again.')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
 
   const updateGuests = (type: 'adults' | 'children' | 'infants' | 'pets', delta: number) => {
     setGuests((prev) => {
@@ -185,14 +406,14 @@ export default function CottageDetails() {
           <div className="w-16 h-16 rounded-full overflow-hidden flex-shrink-0">
             <Image 
               src="/images/profile.avif" 
-              alt="Bill And Shauna" 
+              alt="Bill and Shauna" 
               width={64} 
               height={64}
               className="w-full h-full object-cover"
             />
           </div>
           <div>
-            <h3 className="text-xl font-bold text-[#223318]">Hosted by Bill And Shauna</h3>
+            <h3 className="text-xl font-bold text-[#223318]">Hosted by Bill and Shauna</h3>
             <p className="text-gray-600">Superhost • 5 years hosting</p>
             <p className="text-sm text-gray-500 mt-1">Superhosts are experienced, highly rated hosts.</p>
           </div>
@@ -278,25 +499,53 @@ export default function CottageDetails() {
           <span className="text-gray-600"> / night</span>
         </div>
 
-        {/* Check-in Date */}
+        {/* Select Dates */}
         <div className="mb-4">
-          <label className="block text-sm font-semibold text-gray-700 mb-2">Check-in</label>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">Dates</label>
+          <button
+            onClick={() => setShowCalendar(!showCalendar)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-left flex items-center gap-2 hover:border-[#223318] transition-colors bg-white"
+          >
+            <CalendarIcon className="w-4 h-4 text-gray-400" />
+            <span className={checkInDate && checkOutDate ? 'text-gray-700 font-medium' : 'text-gray-500'}>
+              {checkInDate && checkOutDate ? `${checkInDate} - ${checkOutDate}` : 'Select date'}
+            </span>
+          </button>
+        </div>
+
+        {/* Guest Name */}
+        <div className="mb-4">
+          <label className="block text-sm font-semibold text-gray-700 mb-2">Name</label>
           <input
-            type="date"
-            value={checkInDate}
-            onChange={(e) => setCheckInDate(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#223318]"
+            type="text"
+            value={guestName}
+            onChange={(e) => setGuestName(e.target.value)}
+            placeholder="Full name"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-[#223318]"
           />
         </div>
 
-        {/* Check-out Date */}
+        {/* Guest Email */}
         <div className="mb-4">
-          <label className="block text-sm font-semibold text-gray-700 mb-2">Check-out</label>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">Email</label>
           <input
-            type="date"
-            value={checkOutDate}
-            onChange={(e) => setCheckOutDate(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#223318]"
+            type="email"
+            value={guestEmail}
+            onChange={(e) => setGuestEmail(e.target.value)}
+            placeholder="your@email.com"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-[#223318]"
+          />
+        </div>
+
+        {/* Guest Phone */}
+        <div className="mb-6">
+          <label className="block text-sm font-semibold text-gray-700 mb-2">Phone</label>
+          <input
+            type="tel"
+            value={guestPhone}
+            onChange={(e) => setGuestPhone(e.target.value)}
+            placeholder="(555) 123-4567"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-[#223318]"
           />
         </div>
 
@@ -412,22 +661,156 @@ export default function CottageDetails() {
           )}
         </div>
 
-        <button className="w-full btn-primary mb-4">Reserve</button>
+        {/* Calendar Modal */}
+        {showCalendar && (
+          <div className="absolute bg-white border border-gray-200 rounded-lg shadow-lg z-20 mt-2 p-4 w-96 md:top-0">
+            <div className="flex items-center justify-between mb-4 pb-4 border-b">
+              <h3 className="text-lg font-semibold text-[#223318]">
+                {['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'][currentCalendarDate.getMonth()]} {currentCalendarDate.getFullYear()}
+              </h3>
+              <button
+                onClick={() => {
+                  setShowCalendar(false)
+                  setSelectedStart(null)
+                  setSelectedEnd(null)
+                }}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="flex items-center justify-between mb-4">
+              <button
+                onClick={handlePrevMonth}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <ChevronLeft className="w-5 h-5 text-[#223318]" />
+              </button>
+              <h4 className="font-semibold text-gray-700"></h4>
+              <button
+                onClick={handleNextMonth}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <ChevronRight className="w-5 h-5 text-[#223318]" />
+              </button>
+            </div>
+
+            {/* Day headers */}
+            <div className="grid grid-cols-7 gap-1 mb-2">
+              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+                <div key={day} className="text-center text-xs font-semibold text-gray-600 py-2">
+                  {day}
+                </div>
+              ))}
+            </div>
+
+            {/* Calendar days */}
+            <div className="grid grid-cols-7 gap-1 mb-4">
+              {Array.from({ length: getDaysInMonth(currentCalendarDate) + getFirstDayOfMonth(currentCalendarDate) }).map((_, index) => {
+                const day = index >= getFirstDayOfMonth(currentCalendarDate) ? index - getFirstDayOfMonth(currentCalendarDate) + 1 : null
+
+                if (day === null) {
+                  return <div key={`empty-${index}`} className="aspect-square" />
+                }
+
+                const date = new Date(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth(), day)
+                const isUnavailable = isDateUnavailable(date)
+                const inRange = isDateInRange(date)
+                const isStart = isStartDate(date)
+                const isEnd = isEndDate(date)
+
+                return (
+                  <button
+                    key={day}
+                    onClick={() => handleCalendarDateClick(day)}
+                    disabled={isUnavailable}
+                    className={`
+                      aspect-square rounded-lg flex items-center justify-center text-xs font-medium
+                      transition-all duration-200
+                      ${isUnavailable
+                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                        : isStart || isEnd
+                          ? 'bg-[#223318] text-white font-bold'
+                          : inRange
+                            ? 'bg-[#e8f0e0] text-[#223318]'
+                            : 'bg-white text-[#223318] hover:bg-[#f0f5eb] border border-gray-200'
+                      }
+                    `}
+                  >
+                    {day}
+                  </button>
+                )
+              })}
+            </div>
+
+            {/* Selected dates info */}
+            {selectedStart && selectedEnd && (
+              <div className="bg-[#e8f0e0] border border-[#223318] rounded-lg p-3 mb-4">
+                <p className="text-xs font-medium text-[#223318]">
+                  {selectedStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {selectedEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                </p>
+                <p className="text-xs text-[#223318] mt-1">
+                  {Math.ceil((selectedEnd.getTime() - selectedStart.getTime()) / (1000 * 60 * 60 * 24))} night(s)
+                </p>
+              </div>
+            )}
+
+            {/* Buttons */}
+            <div className="flex gap-2">
+              <button
+                onClick={() => {
+                  setShowCalendar(false)
+                  setSelectedStart(null)
+                  setSelectedEnd(null)
+                }}
+                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium text-sm"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDateSelection}
+                disabled={!selectedStart || !selectedEnd}
+                className={`
+                  flex-1 px-4 py-2 rounded-lg transition-colors font-medium text-sm
+                  ${selectedStart && selectedEnd
+                    ? 'bg-[#223318] text-white hover:bg-[#1a2610]'
+                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  }
+                `}
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        )}
+
+        <button 
+          onClick={handleReserveClick}
+          disabled={isSubmitting || !checkInDate || !checkOutDate}
+          className="w-full btn-primary mb-4 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {isSubmitting ? 'Creating booking...' : 'Reserve'}
+        </button>
         <p className="text-sm text-gray-600 text-center mb-4">You won't be charged yet</p>
         
         <div className="space-y-4 text-sm border-t pt-4">
-          <div className="flex justify-between">
-            <span className="text-gray-600">$249 × 4 nights</span>
-            <span className="font-semibold">$996</span>
-          </div>
+          {nights > 0 && (
+            <div className="flex justify-between">
+              <span className="text-gray-600">${nightly_rate} × {nights} night{nights !== 1 ? 's' : ''}</span>
+              <span className="font-semibold">${(nights * nightly_rate).toLocaleString()}</span>
+            </div>
+          )}
           <div className="flex justify-between">
             <span className="text-gray-600">Service fee</span>
-            <span className="font-semibold">$150</span>
+            <span className="font-semibold">${servicefee}</span>
           </div>
-          <div className="flex justify-between border-t pt-4 font-bold text-lg">
-            <span>Total</span>
-            <span>$1,146</span>
-          </div>
+          {nights > 0 && (
+            <div className="flex justify-between border-t pt-4 font-bold text-lg">
+              <span>Total</span>
+              <span>${totalPrice.toLocaleString()}</span>
+            </div>
+          )}
         </div>
       </div>
     </section>
