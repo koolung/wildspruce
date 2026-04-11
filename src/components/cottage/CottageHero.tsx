@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Image from 'next/image'
-import { Star, MapPin, Users, Bed, Bath, Maximize2 } from 'lucide-react'
+import { Star, MapPin, Users, Bed, Bath, PawPrint, Maximize2 } from 'lucide-react'
 import ImageModal from './ImageModal'
 
 export default function CottageHero() {
@@ -131,6 +131,10 @@ export default function CottageHero() {
               <div className="flex items-center gap-1">
                 <Bath className="w-4 h-4" />
                 <span>1 bath</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <PawPrint className="w-4 h-4" />
+                <span>Pet Friendly</span>
               </div>
             </div>
           </div>

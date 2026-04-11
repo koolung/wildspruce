@@ -7,9 +7,14 @@
  * Sanitize and validate input to prevent injection attacks
  * - Remove any null bytes
  * - Limit string length
- * - Allow only alphanumeric and safe special characters
+ * - For usernames: allow only alphanumeric, dots, hyphens, underscores
+ * - For passwords: allow most characters except control characters
  */
-export function sanitizeInput(input: unknown, maxLength: number = 256): string {
+export function sanitizeInput(
+  input: unknown,
+  maxLength: number = 256,
+  isPassword: boolean = false
+): string {
   if (typeof input !== "string") {
     throw new Error("Invalid input type");
   }
@@ -19,10 +24,18 @@ export function sanitizeInput(input: unknown, maxLength: number = 256): string {
     .replace(/\0/g, "") // Remove null bytes
     .replace(/[\r\n]/g, ""); // Remove line breaks
 
-  // For credentials, be more strict - only allow word characters, dots, hyphens, underscores
-  // This helps prevent special character injection attacks
-  if (!sanitized.match(/^[\w.-]+$/)) {
-    throw new Error("Invalid character in input");
+  // For usernames, be strict - only allow word characters, dots, hyphens, underscores
+  // For passwords, be more permissive - allow most printable characters
+  if (isPassword) {
+    // Passwords: reject only null bytes and control characters (already removed null bytes above)
+    if (!sanitized.match(/^[\x20-\x7E]*$/)) {
+      throw new Error("Invalid character in password");
+    }
+  } else {
+    // Usernames: strict validation - word characters, dots, hyphens, underscores only
+    if (!sanitized.match(/^[\w.-]+$/)) {
+      throw new Error("Invalid character in username");
+    }
   }
 
   return sanitized;

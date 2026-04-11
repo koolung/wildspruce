@@ -77,8 +77,8 @@ export async function createAdminSession(
 ): Promise<boolean> {
   // Sanitize inputs
   try {
-    sanitizeInput(username, 128);
-    sanitizeInput(password, 128);
+    sanitizeInput(username, 128, false);
+    sanitizeInput(password, 128, true);
   } catch (err) {
     return false;
   }

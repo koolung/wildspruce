@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { Users, Bed, Bath, Wifi, Star } from 'lucide-react'
+import { Users, Bed, Bath, Wifi, Star, PawPrint } from 'lucide-react'
 
 interface Cabin {
   id: number
@@ -36,12 +36,12 @@ export default function Cabins() {
     },
     {
       id: 2,
-      title: 'Lakeside Cabin Paradise',
+      title: 'The Sweet Fern',
       location: 'Molega Lake, Nova Scotia',
-      image: '/images/lake_view.png',
-      sleeps: 6,
-      beds: 3,
-      baths: 2,
+      image: '/images/the-sweet-fern/the_sweet_fern.jpg',
+      sleeps: 5,
+      beds: 2,
+      baths: 1,
       wifi: true,
       rating: 5.0,
       reviews: 245,
@@ -100,6 +100,11 @@ export default function Cabins() {
                     <span className="text-xs text-gray-600">({cabin.reviews})</span>
                   </div>
                 )}
+                {/* Pet Friendly Badge */}
+                <div className="absolute bottom-4 left-4 bg-white rounded-full px-3 py-1 flex items-center gap-1 shadow-md">
+                  <PawPrint className="w-4 h-4 text-orange-500" />
+                  <span className="text-xs font-semibold text-gray-800">Pet Friendly</span>
+                </div>
               </div>
 
               {/* Content */}

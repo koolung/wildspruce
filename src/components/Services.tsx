@@ -12,7 +12,7 @@ export default function Services() {
   const services: ServiceCard[] = [
     {
       icon: Wifi,
-      title: 'High-Speed WiFi',
+      title: 'WiFi',
       description: 'Stay connected with reliable high-speed internet throughout the cabin.',
     },
     {

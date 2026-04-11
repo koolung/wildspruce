@@ -76,6 +76,8 @@ export default function CottageDetails() {
   const [guestEmail, setGuestEmail] = useState('')
   const [guestPhone, setGuestPhone] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [waiverAgreed, setWaiverAgreed] = useState(false)
+  const [showWaiverModal, setShowWaiverModal] = useState(false)
 
   // Fetch unavailable dates when calendar opens (only once)
   useEffect(() => {
@@ -244,7 +246,7 @@ export default function CottageDetails() {
 
   const nights = calculateNights()
   const nightly_rate = 249
-  const servicefee = 150
+  const servicefee = 25
   const totalPrice = nights > 0 ? nights * nightly_rate + servicefee : 0
 
   const handleReserveClick = async () => {
@@ -262,6 +264,10 @@ export default function CottageDetails() {
     }
     if (!guestPhone.trim()) {
       alert('Please enter your phone number')
+      return
+    }
+    if (!waiverAgreed) {
+      alert('Please agree to the waiver to proceed')
       return
     }
 
@@ -784,15 +790,34 @@ export default function CottageDetails() {
             </div>
           </div>
         )}
+        
+        {/* Waiver Checkbox */}
+        <div className="mb-6 flex items-start gap-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
+          <input
+            type="checkbox"
+            id="waiver"
+            checked={waiverAgreed}
+            onChange={(e) => setWaiverAgreed(e.target.checked)}
+            className="w-5 h-5 mt-0.5 cursor-pointer accent-[#223318]"
+          />
+          <label htmlFor="waiver" className="flex-1 cursor-pointer">
+            <span className="text-sm text-gray-700">I have read and agree to the </span>
+            <button
+              onClick={() => setShowWaiverModal(true)}
+              className="text-sm font-semibold text-[#223318] hover:underline inline"
+            >
+              Liability Waiver
+            </button>
+          </label>
+        </div>
 
         <button 
           onClick={handleReserveClick}
-          disabled={isSubmitting || !checkInDate || !checkOutDate}
+          disabled={isSubmitting || !checkInDate || !checkOutDate || !waiverAgreed}
           className="w-full btn-primary mb-4 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isSubmitting ? 'Creating booking...' : 'Reserve'}
         </button>
-        <p className="text-sm text-gray-600 text-center mb-4">You won't be charged yet</p>
         
         <div className="space-y-4 text-sm border-t pt-4">
           {nights > 0 && (
@@ -812,6 +837,145 @@ export default function CottageDetails() {
             </div>
           )}
         </div>
+
+        {/* Waiver Modal */}
+        {showWaiverModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[80vh] overflow-y-auto mx-4">
+              {/* Header */}
+              <div className="flex items-center justify-between p-6 border-b sticky top-0 bg-white">
+                <h2 className="text-2xl font-bold text-[#223318]">Liability Waiver</h2>
+                <button
+                  onClick={() => setShowWaiverModal(false)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              {/* Content */}
+              <div className="p-6 text-gray-700 text-sm leading-relaxed space-y-4">
+                <section>
+                  <h3 className="font-bold text-[#223318] mb-2">ASSUMPTION OF RISK & LIABILITY WAIVER</h3>
+                  <p>
+                    PLEASE READ THIS AGREEMENT CAREFULLY. BY MAKING A RESERVATION AND ARRIVING AT THE PROPERTY, 
+                    YOU ACKNOWLEDGE THAT YOU HAVE READ AND UNDERSTAND THIS WAIVER AND VOLUNTARILY AGREE TO ITS TERMS.
+                  </p>
+                </section>
+
+                <section>
+                  <h3 className="font-bold text-[#223318] mb-2">1. ACKNOWLEDGMENT OF RISKS</h3>
+                  <p>
+                    The guest acknowledges that use of the property and participation in any activities involve inherent risks, 
+                    including but not limited to:
+                  </p>
+                  <ul className="list-disc pl-6 mt-2 space-y-1">
+                    <li>Water-related activities (swimming, boating, etc.)</li>
+                    <li>Natural hazards on the property (uneven terrain, wildlife, water bodies)</li>
+                    <li>Outdoor activities and recreational facilities</li>
+                    <li>Use of hot tubs, saunas, or other amenities</li>
+                    <li>Fire pit and outdoor heating equipment</li>
+                    <li>Weather-related hazards</li>
+                  </ul>
+                </section>
+
+                <section>
+                  <h3 className="font-bold text-[#223318] mb-2">2. ASSUMPTION OF RISK</h3>
+                  <p>
+                    The guest voluntarily assumes all risks associated with their stay at the property and use of all 
+                    amenities and facilities. The host is not responsible for any injuries, accidents, or damages that may 
+                    occur during the guest's stay to the extent permitted by law.
+                  </p>
+                </section>
+
+                <section>
+                  <h3 className="font-bold text-[#223318] mb-2">3. RELEASE OF LIABILITY</h3>
+                  <p>
+                    In consideration for being permitted to stay at the property, the guest hereby releases, waives, and 
+                    discharges the host, property owner, manager, and their respective agents, employees, and representatives 
+                    from any and all claims, demands, or causes of action arising from:
+                  </p>
+                  <ul className="list-disc pl-6 mt-2 space-y-1">
+                    <li>Personal injury or property damage</li>
+                    <li>Illness or death</li>
+                    <li>Loss of personal items or belongings</li>
+                    <li>Accidents, falls, or other incidents on the property</li>
+                    <li>Allergic reactions or health complications</li>
+                    <li>Any negligence (except gross negligence)</li>
+                  </ul>
+                </section>
+
+                <section>
+                  <h3 className="font-bold text-[#223318] mb-2">4. RULES & SAFETY</h3>
+                  <p>
+                    The guest agrees to follow all posted safety guidelines, rules, and instructions provided by the host. 
+                    The guest assumes full responsibility for their own safety and the safety of anyone in their party.
+                  </p>
+                </section>
+
+                <section>
+                  <h3 className="font-bold text-[#223318] mb-2">5. COMMUNICATION OF RISKS</h3>
+                  <p>
+                    The guest acknowledges that the host has disclosed all known hazards and risks associated with the 
+                    property. If the guest is uncertain about any risk, they are responsible for asking the host before 
+                    engaging in any activity.
+                  </p>
+                </section>
+
+                <section>
+                  <h3 className="font-bold text-[#223318] mb-2">6. MEDICAL EMERGENCIES</h3>
+                  <p>
+                    In the event of a medical emergency, the guest authorizes the host to contact emergency services. The 
+                    guest is responsible for all medical expenses incurred.
+                  </p>
+                </section>
+
+                <section>
+                  <h3 className="font-bold text-[#223318] mb-2">7. INSURANCE</h3>
+                  <p>
+                    The guest is strongly encouraged to obtain travel and health insurance. The host recommends that all 
+                    guests have adequate personal insurance coverage.
+                  </p>
+                </section>
+
+                <section>
+                  <h3 className="font-bold text-[#223318] mb-2">8. RESTRICTIONS</h3>
+                  <p>
+                    This waiver does not exempt the host from liability for gross negligence, willful misconduct, or 
+                    violations of applicable law. This waiver is binding on the guest's heirs, estate, and personal representatives.
+                  </p>
+                </section>
+
+                <section>
+                  <h3 className="font-bold text-[#223318] mb-2">ACKNOWLEDGMENT</h3>
+                  <p className="font-semibold">
+                    I have read this agreement carefully, understand its terms, and voluntarily assume all risks associated 
+                    with my stay at the property.
+                  </p>
+                </section>
+              </div>
+
+              {/* Footer */}
+              <div className="p-6 border-t bg-gray-50 flex gap-3">
+                <button
+                  onClick={() => setShowWaiverModal(false)}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors font-medium"
+                >
+                  Close
+                </button>
+                <button
+                  onClick={() => {
+                    setWaiverAgreed(true)
+                    setShowWaiverModal(false)
+                  }}
+                  className="flex-1 px-4 py-2 bg-[#223318] text-white rounded-lg hover:bg-[#1a2610] transition-colors font-medium"
+                >
+                  I Agree
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </section>
   )

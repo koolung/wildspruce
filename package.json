@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.100.1",
-    "lucide-react": "^0.263.1",
+    "lucide-react": "^1.8.0",
     "nano": "^11.0.4",
     "next": "^16.1.6",
     "nodemailer": "^8.0.4",

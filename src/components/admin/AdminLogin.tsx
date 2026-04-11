@@ -18,8 +18,8 @@ export default function AdminLogin() {
 
     try {
       // Sanitize inputs to prevent injection attacks
-      const sanitizedUsername = sanitizeInput(username, 128);
-      const sanitizedPassword = sanitizeInput(password, 128);
+      const sanitizedUsername = sanitizeInput(username, 128, false);
+      const sanitizedPassword = sanitizeInput(password, 128, true);
 
       // Call server action to verify credentials and create session
       const response = await fetch("/api/admin/login", {
